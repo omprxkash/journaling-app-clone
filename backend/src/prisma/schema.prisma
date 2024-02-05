@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  entries   Entry[]
+  tags      Tag[]
+  createdAt DateTime @default(now())
+}
+
+model Entry {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  body      String
+  bodyPlain String
+  searchVec Unsupported("tsvector")?
+  tags      Tag[]
+  mood      String?
+  wordCount Int       @default(0)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([userId, createdAt])
+}
+
+model Tag {
+  id      String  @id @default(cuid())
+  name    String
+  color   String  @default("#6366f1")
+  entries Entry[]
+  userId  String
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, name])
+}
